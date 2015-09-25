@@ -1,8 +1,5 @@
-#include <stdio.h>
 
 using namespace System::Drawing;
-
-
 class Punto
 {
 
@@ -34,23 +31,23 @@ class Circulo
 {
 private:
 	Punto* punto;
-	Punto* pCentro;
+	Punto* origen;
 	int diametro;
 public:
-	Circulo(Punto* pCentro, int radio);
+	Circulo(Punto* origen, int radio = 15);
 	~Circulo();
-	Punto* encontrarCentro(int x, int y);
+	bool entroAlCirculo(int x, int y);
 	void mostrar(Graphics^);
 };
 
-
-class Signo
+class Simbolo
 {
 private:
-	int simbolo;
+	int dato;
+	int tamanio;
+	Punto* origen;
 public:
-	Signo(int simbolo);
-	~Signo();
-	int getSimbolo();
-	void setSimbolo(int simbolo);
+	Simbolo(Punto* origen, int dato);
+	~Simbolo();
+	void mostrarSimbolo(Graphics^);
 };

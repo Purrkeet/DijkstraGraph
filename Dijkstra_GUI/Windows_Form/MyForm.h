@@ -1,6 +1,5 @@
 #pragma once
-#include "Figuras.h"
-
+#include "Grafo.h"
 
 namespace Windows_Form {
 
@@ -18,13 +17,13 @@ namespace Windows_Form {
 	{
 	private:
 		int x, y;
-		Circulos* listaCirculos;
+		GrafoFacade* grafo;
 	public:
 		MyForm(void)
 		{
 			InitializeComponent();
-			listaCirculos = new Circulos();
 			x = 0; y = 0;
+			grafo = new GrafoFacade();
 			//
 			//TODO: agregar código de constructor aquí
 			//
@@ -73,7 +72,6 @@ namespace Windows_Form {
 			// ciclo
 			// 
 			this->ciclo->Enabled = true;
-			this->ciclo->Interval = 75;
 			this->ciclo->Tick += gcnew System::EventHandler(this, &MyForm::ciclo_Tick);
 			// 
 			// panelPrincipal
@@ -98,12 +96,24 @@ namespace Windows_Form {
 			this->ResumeLayout(false);
 
 		}
+
 #pragma endregion
 		private: System::Void ciclo_Tick(System::Object^  sender, System::EventArgs^  e) {
 				Graphics^ lienzo = this->panelPrincipal->CreateGraphics();
+				
+				int lAncho = lienzo->VisibleClipBounds.Width;
+				int lAlto = lienzo->VisibleClipBounds.Height;
 
-				listaCirculos->mostrar(lienzo);
+				BufferedGraphicsContext^ espacioBuffered = BufferedGraphicsManager::Current;
+				espacioBuffered->MaximumBuffer = System::Drawing::Size(lAncho + 1, lAlto + 1);
+				BufferedGraphics^ lienzoBuffer = espacioBuffered->Allocate(lienzo, Drawing::Rectangle(0, 0, lAncho, lAlto));
+				
+				lienzoBuffer->Graphics->Clear(Color::White);
+				grafo->mostrarGrafo(lienzoBuffer->Graphics);
 
+				lienzoBuffer->Render(lienzo);
+
+				delete lienzoBuffer;
 				delete lienzo;
 		}
 	private: System::Void panelPrincipal_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
@@ -115,14 +125,11 @@ namespace Windows_Form {
 				 
 				 if (e->Button == System::Windows::Forms::MouseButtons::Left)
 				 {
-					 listaCirculos->agregar(x, y, 15);
+					 grafo->agregarVertice(x, y);
 				 }					 
 				 else if (e->Button == System::Windows::Forms::MouseButtons::Right) 
 				 {
-					 Punto* nodo = listaCirculos->encontrarCirculo(x, y);
-					 MessageBox::Show("(x, y) = (" + nodo->x + ", " + nodo->y + ")");
-					 
-					 
+					 grafo->agregarRelacion(x, y);
 				 }
 					 
 				 

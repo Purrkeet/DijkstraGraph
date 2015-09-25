@@ -79,12 +79,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Figura.cpp" />
-    <ClCompile Include="Figuras.cpp" />
+    <ClCompile Include="Grafo.cpp" />
     <ClCompile Include="MyForm.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Figura.h" />
-    <ClInclude Include="Figuras.h" />
+    <ClInclude Include="Grafo.h" />
     <ClInclude Include="MyForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>

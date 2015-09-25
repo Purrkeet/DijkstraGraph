@@ -29,7 +29,7 @@ Linea::~Linea()
 {}
 void Linea::mostrar(Graphics^ lienzo)
 {
-	Pen^ lapiz = gcnew Pen(Color::Black);
+	Pen^ lapiz = gcnew Pen(Color::Black, 2);
 	lienzo->DrawLine(lapiz, pInicio->x, pInicio->y, 
 							pFinal->x, pFinal->y);
 }
@@ -38,10 +38,10 @@ void Linea::mostrar(Graphics^ lienzo)
 
 
 
-Circulo::Circulo(Punto* pCentro, int radio)
+Circulo::Circulo(Punto* origen, int radio)
 {
-	this->pCentro = pCentro;
-	punto = new Punto(pCentro->x - radio, pCentro->y - radio);
+	this->origen = origen;
+	punto = new Punto(origen->x - radio, origen->y - radio);
 	this->diametro = 2*radio;
 }
 Circulo::~Circulo()
@@ -51,33 +51,34 @@ void Circulo::mostrar(Graphics^ lienzo)
 	SolidBrush^ pincel = gcnew SolidBrush(Color::Yellow);
 	lienzo->FillEllipse(pincel, punto->x, punto->y, diametro, diametro);
 }
-Punto* Circulo::encontrarCentro(int x, int y)
+bool Circulo::entroAlCirculo(int x, int y)
 {
 	if (punto->x < x && x < punto->x + diametro)
 	{
-		if (punto->x < x && x < punto->x + diametro)
+		if (punto->y < y && y < punto->y + diametro)
 		{
-			return pCentro;
+			return true;
 		}
 	}
 	
-	return NULL;
+	return false;
 }
 
 
 
-
-Signo::Signo(int simbolo)
+Simbolo::Simbolo(Punto* origen, int dato)
 {
-	setSimbolo(simbolo);
+	this->origen = origen;
+	this->dato = dato;
+	tamanio = 8;
 }
-Signo::~Signo()
+Simbolo::~Simbolo()
 {}
-int Signo::getSimbolo()
+void Simbolo::mostrarSimbolo(Graphics^ lienzo)
 {
-	return simbolo;
+	Font^ fuente = gcnew Font("Times New Roman", tamanio*2);
+	SolidBrush^ pincel = gcnew SolidBrush(Color::Blue);
+	
+	lienzo->DrawString(dato.ToString(), fuente, pincel, origen->x - tamanio, origen->y - tamanio);
 }
-void Signo::setSimbolo(int simbolo)
-{
-	this->simbolo = simbolo;
-}
+

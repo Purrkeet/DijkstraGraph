@@ -1,143 +1,232 @@
 #include "Grafo.h"
 
-Vertice::Vertice(Punto* origen, int dato)
-{
-	this->dato = dato;
-	this->origen = origen;
-
-	circulo = new Circulo(origen);
-	simbolo = new Simbolo(origen, dato);
-}
-Vertice::~Vertice()
-{}
-Vertice* Vertice::entroAlVertice(int x, int y)
-{
-	if(circulo->entroAlCirculo(x, y))
-		return this;
-	return NULL;
-}
-void Vertice::mostrarVertice(Graphics^ lienzo)
-{
-	circulo->mostrar(lienzo);
-	simbolo->mostrarSimbolo(lienzo);
-}
-Punto* Vertice::getOrigen()
-{
-	return origen;
-}
-
-
-
-Relacion::Relacion(Vertice* nodoOrigen, Vertice* nodoDestino)
-{
-	this->peso = 0;
-	Punto* origen = nodoOrigen->getOrigen();
-	Punto* destino = nodoDestino->getOrigen();
-	linea = new Linea(origen, destino);
-	
-	simbolo = new Simbolo(new Punto((origen->x + destino->x) / 2,
-									(origen->y + destino->y) / 2), peso);
-}
-Relacion::~Relacion()
-{
-}
-void Relacion::mostrarRelacion(Graphics^ lienzo)
-{
-	linea->mostrar(lienzo);
-	simbolo->mostrarSimbolo(lienzo);
-}
-void Relacion::setPeso(int peso)
-{
-	this->peso = peso;
-}
-
-
-
+/*-----------------------------------*/
 Grafo::Grafo()
 {
-	grafo = Gf();
+	grafo = GrafoNodos();
 }
 Grafo::~Grafo()
 {}
-void Grafo::agregarVertice(Vertice* nuevo)
+Nodo Grafo::getNodo(int nodo)
 {
+	return grafo[nodo];
+}
+void Grafo::insertarVertice(GVertice* nuevoVertice)
+{	
 	Nodo nodo = Nodo();
-	nodo.first = nuevo;
-	nodo.second = vector<Relacion*>();
+	nodo.first = nuevoVertice;
+	nodo.second = Aristas();
 	grafo.push_back(nodo);
 }
-void Grafo::agregarRelacion(Vertice* nodoOrigen, Vertice* nodoDestino)
+void Grafo::insertarRelacion(GVertice* origen, GVertice* destino, int peso)
 {
-	Relacion* arista = new Relacion(nodoOrigen, nodoDestino);
-	Nodo nodo;
-	
-	grafo[nodoOrigen->dato - NUMERO_INICIO].second.push_back(arista);
+	if (origen != NULL && destino != NULL)
+	{
+		GArista* aristaOrigen = new GArista(origen->getCentro(), destino->getCentro(), peso);
+		GArista* aristaDestino = new GArista(destino->getCentro(), origen->getCentro(), peso);
+
+		int nodo;
+
+		nodo = origen->getPrimero() - 1;
+		grafo[nodo].second.push_back(aristaOrigen);
+		nodo = destino->getPrimero() - 1;
+		grafo[nodo].second.push_back(aristaDestino);
+	}	
 }
 void Grafo::mostrarGrafo(Graphics^ lienzo)
 {
-	Nodo nodo;
 	for (int i = 0; i < grafo.size(); i++)
 	{
-		nodo = grafo[i];
-		for (int j = 0; j < nodo.second.size(); j++)
-		{
-			nodo.second[j]->mostrarRelacion(lienzo);
-		}			
+		grafo[i].first->mostrarVertice(lienzo);
 	}
 	for (int i = 0; i < grafo.size(); i++)
 	{
-		nodo = grafo[i];
-		nodo.first->mostrarVertice(lienzo);
+		for (int j = 0; j < grafo[i].second.size(); j++)
+			grafo[i].second[j]->mostrarArista(lienzo);
 	}
 }
-Vertice* Grafo::encontrarVertice(int x, int y)
+int Grafo::encontrarVertice(int x, int y)
 {
-	Vertice* buscando = NULL;
-	Nodo nodo;
+	GVertice* buscando = NULL;
 	for (int i = 0; i < grafo.size(); i++)
 	{
-		nodo = grafo[i];
-		buscando = nodo.first->entroAlVertice(x, y);
+		buscando = grafo[i].first->entroAlVertice(x, y);
 		if (buscando != NULL)
-			return buscando;
+			return i;
 	}
-
-	return NULL;
+	return NO_EXISTE;
 }
-
-
-
+/*-----------------------------------*/
+/*-----------------------------------*/
 GrafoFacade::GrafoFacade()
 {
-	datoInicial = NUMERO_INICIO;
-	grafo = new Grafo();
-	primero = NULL;
+	this->grafo = new Grafo();
+	this->datoInicio = NUMERO_INICIO;
+	
+	this->selectVertice = NULL;
+	this->selectFila = -1;
+	this->tablaRelacion = NULL;	
+	matrizAdy = Gi(MAX);	
 }
 GrafoFacade::~GrafoFacade()
 {}
-void GrafoFacade::agregarVertice(int x, int y)
+void GrafoFacade::insertarVertice(int x, int y)
 {
-	Vertice* nuevo = new Vertice(new Punto(x, y), datoInicial);
-	grafo->agregarVertice(nuevo);
-	datoInicial++;
-}
-void GrafoFacade::agregarRelacion(int x, int y)
-{
-	Vertice* buscando = grafo->encontrarVertice(x, y);
-	if (buscando != NULL)
+	int nodo = grafo->encontrarVertice(x, y);	
+	if (nodo == NO_EXISTE)
 	{
-		if (primero == NULL) 
+		TPunto origen;
+		origen.setPunto(x, y);
+		GVertice* nuevoVertice = new GVertice(origen, datoInicio);
+		grafo->insertarVertice(nuevoVertice);
+		datoInicio++;
+	}
+}
+void GrafoFacade::insertarRelacion(int x, int y)
+{
+	int nodo = grafo->encontrarVertice(x, y);
+
+	if (nodo != NO_EXISTE)
+	{
+		GVertice* buscando = grafo->getNodo(nodo).first;
+		if (selectVertice == NULL)
 		{
-			primero = buscando;
+			selectVertice = buscando;
 		}
-		else if (buscando != primero)
+		else if (selectVertice != buscando)
 		{
-			grafo->agregarRelacion(primero, buscando);
-			primero = NULL;
+			grafo->insertarRelacion(selectVertice, buscando, 0);
+			int u = selectVertice->getPrimero() - 1;
+			int v = buscando->getPrimero() - 1;
+
+			matrizAdy[u].push_back(ii(v, 0));
+			matrizAdy[v].push_back(ii(u, 0));			
+
+			selectVertice = NULL;
 		}
 	}	
 }
 void GrafoFacade::mostrarGrafo(Graphics^ lienzo)
 {
 	grafo->mostrarGrafo(lienzo);
+}
+void GrafoFacade::exportarMatriadyacencia()
+{}
+void GrafoFacade::cambiarPesoRelacion(int peso)
+{
+	if (selectFila != NO_EXISTE)
+	{
+		ii nodo = tablaRelacion->getFila(selectFila)->getNodoDatos();
+		int u = nodo.first - 1;
+		int v = nodo.second - 1;
+		int indice = 0;
+		
+		
+		for (int i = 0; i < matrizAdy[v].size(); i++)
+		{
+			if (matrizAdy[v][i].first == u)
+			{
+				indice = i;
+				break;
+			}
+		}
+		matrizAdy[u][selectFila].second = peso;
+		matrizAdy[v][indice].second = peso;
+		
+		grafo->getNodo(u).second[selectFila]->setPeso(peso);
+		grafo->getNodo(v).second[indice]->setPeso(peso);
+
+		tablaRelacion->getFila(selectFila)->setPeso(peso);
+	}
+}
+void GrafoFacade::encontrarFilaTablaRelacion(int x, int y)
+{
+	if (tablaRelacion != NULL)
+	{
+		int posicion = tablaRelacion->encontrarFila(x, y);
+		if (posicion != NO_EXISTE)
+		{
+			if (selectFila != NO_EXISTE)
+			{
+				tablaRelacion->getFila(selectFila)->setEstado(false);
+			}
+			selectFila = posicion;
+			tablaRelacion->getFila(selectFila)->setEstado(true);
+		}
+	}
+	
+}
+void GrafoFacade::visualizarRelacionesNodo(int x, int y)
+{
+	int nodo = grafo->encontrarVertice(x, y);
+	if (nodo != NO_EXISTE)
+	{
+		if (selectFila != NO_EXISTE)
+		{
+			tablaRelacion->getFila(selectFila)->setEstado(false);
+			selectFila = NO_EXISTE;
+		}		
+		
+		TPunto auxiliar;
+		auxiliar.setPunto(LADO, LADO);
+		tablaRelacion = new TablaRelacion(matrizAdy, nodo, auxiliar);
+	}
+}
+void GrafoFacade::mostrarTablaRelacion(Graphics^ lienzo)
+{
+	if (tablaRelacion != NULL)
+	{
+		tablaRelacion->mostrarTablaRelacion(lienzo);
+		if (selectFila != NO_EXISTE)
+			tablaRelacion->getFila(selectFila)->mostrarBloqueRelacion(lienzo);
+	}
+}
+/*-----------------------------------*/
+/*-----------------------------------*/
+TablaRelacion::TablaRelacion(Gi grafo, int nodo, TPunto origen)
+{
+	this->origen = origen;
+	this->tabla = TABLA();
+
+	inicializarTablaRelacion(grafo, nodo);
+}
+void TablaRelacion::inicializarTablaRelacion(Gi grafo, int nodo)
+{
+	TPunto auxiliar;
+	int u, v, w;
+	u = nodo + 1;
+	int acumulado = origen.y;
+	for (int i = 0; i < grafo[nodo].size(); i++)
+	{
+		v = grafo[nodo][i].first + 1;
+		w = grafo[nodo][i].second;
+		auxiliar.setPunto(origen.x, acumulado);
+		FILA fila = new BloqueRelacion(auxiliar, u, v, w);
+		tabla.push_back(fila);
+		acumulado += LADO;
+	}
+	auxiliar.setPunto(origen.x + 3 * LADO, acumulado);
+	this->destino = auxiliar;
+}
+TablaRelacion::~TablaRelacion()
+{}
+FILA TablaRelacion::getFila(int posicion)
+{
+	return tabla[posicion];
+}
+int TablaRelacion::encontrarFila(int x, int y)
+{
+	if (origen.x < x && x < destino.x)
+	{
+		if (origen.y < y && y < destino.y)
+			return (y - origen.y) / LADO;
+	}	
+	return NO_EXISTE;
+}
+void TablaRelacion::mostrarTablaRelacion(Graphics^ lienzo)
+{
+	for (int i = 0; i < tabla.size(); i++)
+	{
+		tabla[i]->mostrarBloqueRelacion(lienzo);
+	}
 }

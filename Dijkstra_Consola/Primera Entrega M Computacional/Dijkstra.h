@@ -56,16 +56,16 @@ public:
 
 			if (Pesos[Hasta] == INF){
 				salida = "No es posible llegar a: ";
-				salida += to_string(Hasta);
+				salida += to_string(Hasta+1);
 				salida += " desde : ";
-				salida += to_string(Desde);
+				salida += to_string(Desde+1);
 				salida += ".\n";
 			}
 			else{
 				salida += "La distancia más corta desde ";
-				salida += to_string(Desde);
+				salida += to_string(Desde+1);
 				salida += " hasta ";
-				salida += to_string(Hasta);
+				salida += to_string(Hasta+1);
 				salida += " son: ";
 				salida += to_string(Pesos[Hasta]);
 				salida += " unidades."; 
@@ -87,14 +87,14 @@ public:
 			salida += "\n";
 			/*if (CantidadCaminos > 1)
 				salida += "Otro camino: ";*/
-			salida += to_string( desde);
+			salida += to_string( desde+1);
 			return salida;
 		}
 	
 		for (int i = 0; i< Padres[hasta].size(); ++i){
 			salida += MostrarCamino(desde, Padres[hasta][i]);
 			salida += " - ";
-			salida += to_string(hasta);
+			salida += to_string(hasta+1);
 			
 		}
 		return salida;

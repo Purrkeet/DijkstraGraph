@@ -68,9 +68,11 @@ public:
 				salida += to_string(Hasta);
 				salida += " son: ";
 				salida += to_string(Pesos[Hasta]);
-				salida += " unidades.\nEl camino a seguir es : ";
-
-				salida += MostrarCamino(Desde, Hasta);
+				salida += " unidades."; 
+				
+				string camino = MostrarCamino(Desde, Hasta); //obtiene cantidad de caminos
+				salida += (CantidadCaminos > 1) ? "\nLos caminos a seguir son : " : "\nEl camino a seguir es : ";
+				salida += camino;
 			}
 
 		}
@@ -81,19 +83,28 @@ public:
 	string MostrarCamino(int desde, int hasta){
 		string salida = "";
 		if (desde == hasta){
+			CantidadCaminos++;
+			salida += "\n";
+			/*if (CantidadCaminos > 1)
+				salida += "Otro camino: ";*/
 			salida += to_string( desde);
 			return salida;
 		}
-		salida = MostrarCamino(desde, Padres[hasta]);
-		salida += " - ";
-		salida += to_string(hasta);
+	
+		for (int i = 0; i< Padres[hasta].size(); ++i){
+			salida += MostrarCamino(desde, Padres[hasta][i]);
+			salida += " - ";
+			salida += to_string(hasta);
+			
+		}
 		return salida;
 	}
 
 	void Dijkstra(int nodoInicial){
 		Cola = pq();
+		CantidadCaminos = 0;
 		Pesos = vi(Nodos, INF); //Creamos un vector de pesos de nodos con valor infinito
-		Padres = vi(Nodos, -1);
+		Padres = vvi(Nodos, vi(1, -1));
 		Cola.push(ii(0, nodoInicial)); //El costo por estar en el inicio es 0
 		Pesos[nodoInicial] = 0;
 		while (!Cola.empty()){
@@ -110,10 +121,13 @@ public:
 				//Entonces Relaja
 				if (PesoActual + PesoAlNodoConsultado < Pesos[NodoConsultado]){
 					Pesos[NodoConsultado] = PesoActual + PesoAlNodoConsultado;
-					Padres[NodoConsultado] = NodoActual;
+					Padres[NodoConsultado] = vi(1, NodoActual);
 					Cola.push(ii(Pesos[NodoConsultado], NodoConsultado));
 				}
-
+				else if (PesoActual + PesoAlNodoConsultado == Pesos[NodoConsultado]){
+					Padres[NodoConsultado].push_back(NodoActual);
+					Cola.push(ii(Pesos[NodoConsultado], NodoConsultado));
+				}
 
 			}
 
@@ -125,11 +139,12 @@ public:
 	}
 	//void Dijkstra(int nodoInicial){}
 	//string MostrarCamino(int desde, int hasta);
-	int Nodos, Aristas;
+	int Nodos, Aristas, CantidadCaminos;
 	//string Resolver();
 	vvii Grafo;
 	pq Cola;
-	vi Pesos, Padres;
+	vi Pesos;
+	vvi Padres;
 private:
 
 };
